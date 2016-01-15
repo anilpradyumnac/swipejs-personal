@@ -1,20 +1,20 @@
-var initial = 0;
-var start = {};
+var initial = 0
+var start = {}
 var s;
-var StartX;
+start.StartX
 
-//Stepper function from FRPjs
+//Stepper function added from FRPJS
 function stepper(eventStream, initial) {
     var valueAtLastStep = initial;
     eventStream(function nextStep(value) {
-        valueAtLastStep = value;
+        valueAtLastStep = value
     })
     return (function behaveAtLastStep() {
-        return valueAtLastStep;
+        return valueAtLastStep
     })
 }
 
-//map from FRP
+//map function from FRPJS
 function map(eventStream, valueTransform) {
     return function(next) {
         eventStream(function(value) {
@@ -22,24 +22,23 @@ function map(eventStream, valueTransform) {
         })
     }
 }
-//on from FRP
+
+//on function from FRPJS
 function on(element, name, useCapture) {
     return function(next) {
-        element.addEventListener(name, next, !!useCapture);
+        element.addEventListener(name, next, !!useCapture)
     }
 }
+
 function touchMove(element) {
     var ele = document.getElementById(element);
-    var event = on(ele, 'touchmove', false);
-    event(ontouchMove);
-    s  = stepper(event,initial);
-    
+    var eventStream = on(ele, 'touchmove', false);
+    eventStream(ontouchMove);
+    s  = stepper(eventStream,initial);
 }
-
 function ontouchMove(e) {
-    
-    
-    start = s();
-    StartX = start.changedTouches[0].pageX;
-    console.log(StartX);
+    start.StartX = e.targetTouches[0].pageX;
+    var touchobj = {};
+    touchobj = s();
+    console.log(touchobj.changedTouches[0]);
 }
