@@ -1,0 +1,16 @@
+{
+  "name": "test_swipejs",
+  "version": "0.0.1",
+  "description": "a swipe library using FRP paradigm",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "FRP",
+    "SwipeJS",
+    "TouchEvents"
+  ],
+  "author": "anilpradyumanc",
+  "license": "ISC"
+}
