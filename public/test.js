@@ -1,9 +1,4 @@
-var initial = {};
-var start = {};
-var s;
-start.StartX;
-var touchobj = {};
-
+'use strict'
 //Stepper function added from FRPJS
 function stepper(eventStream, initial) {
     var valueAtLastStep = initial;
@@ -14,7 +9,8 @@ function stepper(eventStream, initial) {
         return valueAtLastStep
     })
 }
-function foldp = function(eventStream, step, initial) {
+//FoldP or reduce
+function foldp(eventStream, step, initial) {
     return (function(next) {
         var accumulated = initial
         eventStream(function (value) {
@@ -37,17 +33,11 @@ function on(element, name, useCapture) {
         element.addEventListener(name, next, !!useCapture);
     }
 }
-
-function touchMove(element) {
-    var ele = document.getElementById(element);
-    var event = on(ele, 'touchmove', false);
-    event(ontouchMove);
-    s  = foldp(event, step, initial);
-    
-}
-
-function ontouchMove(e) {
-    initial = e.targetTouches[0].pageX;
-    touchobj.StartX = s();
-    console.log(touchobj);
+function touchHandler(element) {
+   const container = document.getElementById(element);
+   let touchMove$ = on(container, "touchmove", false);
+   touchMove$ = map(touchMove$, event => ({pageX: event.targetTouches[0].clientX,}));
+   touchMove$(page => console.log(page));
+   touchMove$ = stepper(touchMove$, 0);
+   touchMove$(value => console.log(value));
 }
