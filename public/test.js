@@ -1,18 +1,5 @@
 'use strict'
 
-//Stepper function added from FRPJS
-function stepper(eventStream, initial) {
-    var valueAtLastStep = initial, valueAtCurrentStep;
-    var skipFirst = true;
-    eventStream(function nextStep(value) {
-        if (skipFirst) skipFirst = false;
-        else valueAtLastStep = valueAtCurrentStep;
-        valueAtCurrentStep = value;
-    });
-    return (function behaveAtLastStep() {
-        return valueAtLastStep
-    });
-}
 //FoldP or reduce
 function foldp(eventStream, step, initial) {
     return (function(next) {
@@ -56,8 +43,8 @@ function touchHandler(element) {
 
    let touchMove$ = on(container, "touchmove", false);
    touchMove$ = map(touchMove$, event => ({
-     pageX: event.targetTouches[0].pageX,
-     pageY: event.targetTouches[0].pageY
+    pageX: event.targetTouches[0].pageX,
+    pageY: event.targetTouches[0].pageY
    }));
 
    touchMove$ = foldp(touchMove$, (prev, curr) => {
@@ -66,7 +53,9 @@ function touchHandler(element) {
        container.style.left = current + dx + "px";
        return curr;
    }, { pageX:touchStart$(value => value.startX), pageY:touchStart$(value => value.startY) })
-   
+
    touchMove$(value => value);
 
+   // let touchEvents$ = bind(touchStart$, (value) => { console.log("bind: " + value.startX); return (next) => touchMove$(next); });
+   // touchEvents$(value => console.log("activate: " + value.pageX));
 }
