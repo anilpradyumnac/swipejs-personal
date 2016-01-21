@@ -48,8 +48,13 @@ function bind(eventStream, valueToEvent) {
 function touchHandler(element) {
    const container = document.getElementById(element);
 
-   let touchMove$   = on(container, "touchmove", false);
+   let touchStart$ = on(container, "touchstart", false);
+   touchStart$ = map(touchStart$, event => ({
+       startX: event.targetTouches[0].pageX,
+       startY: event.targetTouches[0].pageY
+   }))
 
+   let touchMove$ = on(container, "touchmove", false);
    touchMove$ = map(touchMove$, event => ({
      pageX: event.targetTouches[0].pageX,
      pageY: event.targetTouches[0].pageY
@@ -58,9 +63,10 @@ function touchHandler(element) {
    touchMove$ = foldp(touchMove$, (prev, curr) => {
        let dx = curr.pageX - prev.pageX;
        let current = parseFloat(container.style.left) || 0;
-       container.style.left = current + dx;
+       container.style.left = current + dx + "px";
        return curr;
-   }, { pageX: 0, pageY: 0 })
-
+   }, { pageX:touchStart$(value => value.startX), pageY:touchStart$(value => value.startY) })
+   
    touchMove$(value => value);
+
 }
