@@ -1,6 +1,6 @@
 'use strict'
 
-//FoldP or reduce
+//reduce or foldp function
 function foldp(eventStream, step, initial) {
     return (function(next) {
       var accumulated = initial
@@ -9,7 +9,7 @@ function foldp(eventStream, step, initial) {
     })
   })
 }
-//map function from FRPJS
+//map function
 function map(eventStream, valueTransform) {
     return function(next) {
         eventStream(function(value) {
@@ -18,13 +18,14 @@ function map(eventStream, valueTransform) {
     }
 }
 
-//on function from FRPJS
+//on function
 function on(element, name, useCapture) {
     return function(next) {
         element.addEventListener(name, next, !!useCapture);
     }
 }
 
+//bind function
 function bind(eventStream, valueToEvent) {
     return function(next) {
         eventStream(function(value) {
@@ -32,30 +33,50 @@ function bind(eventStream, valueToEvent) {
         })
     }
 }
+
+//main function that runs the other functions
 function touchHandler(element) {
    const container = document.getElementById(element);
 
    let touchStart$ = on(container, "touchstart", false);
+
    touchStart$ = map(touchStart$, event => ({
        startX: event.targetTouches[0].pageX,
-       startY: event.targetTouches[0].pageY
+       startY: event.targetTouches[0].pageY,
+
    }))
+
+
+   touchStart$(value => console.log("Touch StartX Value: "+ value.startX))
 
    let touchMove$ = on(container, "touchmove", false);
    touchMove$ = map(touchMove$, event => ({
-    pageX: event.targetTouches[0].pageX,
-    pageY: event.targetTouches[0].pageY
+       pageX: event.targetTouches[0].pageX,
+       pageY: event.targetTouches[0].pageY
    }));
 
-   touchMove$ = foldp(touchMove$, (prev, curr) => {
+   // touchMove$ = foldp(touchMove$, (prev, curr) => {
+   //     console.log(prev.pageX, curr.pageX)
+   //     let dx = curr.pageX - prev.pageX;
+   //     let current = parseFloat(container.style.left) || 0;
+   //     container.style.left = current + dx + "px";
+   //     return curr;
+   // }, { pageX: touchStart$(value => { return value.startX }), pageY: touchStart$(value => { return value.startY }) })
+   //
+   // touchMove$(value => value);
+   let touchEnd$ = on(container,"touchend", false)
+   touchEnd$ = map(touchEnd$, event => (
+       event.preventDefault()
+   ))
+   touchEnd$(value => console.log(value))
+   let touchEvents$ = bind(touchStart$, (value) => foldp(touchMove$, (prev, curr) => {
+       console.log("Curr: "+curr.pageX, ", prev: "+prev.pageX);
        let dx = curr.pageX - prev.pageX;
        let current = parseFloat(container.style.left) || 0;
        container.style.left = current + dx + "px";
-       return curr;
-   }, { pageX:touchStart$(value => value.startX), pageY:touchStart$(value => value.startY) })
+       return curr || value.startX;
+   }, { pageX: value.startX, pageY: value.startY } ) )
+   //touchEvents = bind(touchEnd$, (value) => )
+   touchEvents$(value => value);
 
-   touchMove$(value => value);
-
-   // let touchEvents$ = bind(touchStart$, (value) => { console.log("bind: " + value.startX); return (next) => touchMove$(next); });
-   // touchEvents$(value => console.log("activate: " + value.pageX));
 }
