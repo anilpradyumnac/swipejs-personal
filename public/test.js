@@ -64,17 +64,14 @@ function touchHandler(element) {
    // }, { pageX: touchStart$(value => { return value.startX }), pageY: touchStart$(value => { return value.startY }) })
    //
    // touchMove$(value => value);
-   let touchEnd$ = on(container,"touchend", false)
-   touchEnd$ = map(touchEnd$, event => (
-       event.preventDefault()
-   ))
+
    touchEnd$(value => console.log(value))
    let touchEvents$ = bind(touchStart$, (value) => foldp(touchMove$, (prev, curr) => {
        console.log("Curr: "+curr.pageX, ", prev: "+prev.pageX);
        let dx = curr.pageX - prev.pageX;
        let current = parseFloat(container.style.left) || 0;
        container.style.left = current + dx + "px";
-       return curr || value.startX;
+       return curr;
    }, { pageX: value.startX, pageY: value.startY } ) )
    //touchEvents = bind(touchEnd$, (value) => )
    touchEvents$(value => value);
