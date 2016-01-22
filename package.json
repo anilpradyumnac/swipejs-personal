@@ -1,6 +1,6 @@
 {
   "name": "test_swipejs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "a swipe library using FRP paradigm",
   "main": "index.js",
   "scripts": {
