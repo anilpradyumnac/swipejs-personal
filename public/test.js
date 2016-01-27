@@ -67,24 +67,9 @@ function touchHandler(element) {
    const container = document.getElementById(element);
 
    let touchStart$ = on(container, "touchstart", false);
-
-   touchStart$ = map(touchStart$, event => ( {
-       eType: event.type,
-       startX: event.targetTouches[0].clientX,
-
-
-   }))
-
-
-   touchStart$(value => console.log("Touch StartX Value: "+ value.startX))
-
    let touchMove$ = on(container, "touchmove", false);
-   touchMove$ = map(touchMove$, event => ({
-       eType: event.Type,
-       pageX: event.targetTouches[0].clientX,
-
-   }));
-   touchMove$(value => console.log("MovingX Value: "+ value.pageX ))
+   let touchEvents$ = merge(touchStart$, touchMove$)
+   
    
    touchEvents$ = map(touchEvents$, event => ({
     eType: event.type,
