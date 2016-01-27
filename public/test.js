@@ -38,6 +38,30 @@ function bind(eventStream, valueToEvent) {
 function doSomething(value){
     return value;
 }
+// function merge(...eventStreams) {
+//  return function(next) {
+//    eventStreams.forEach(function(eventStream) {
+//      eventStream(function(value) {
+//        next(value)
+//      })
+//    })
+//  }
+// }
+
+function merge() {
+  for (var _len = arguments.length, eventStreams = Array(_len), _key = 0; _key < _len; _key++) {
+    eventStreams[_key] = arguments[_key]
+  }
+
+  return function (next) {
+    eventStreams.forEach(function (eventStream) {
+      eventStream(function (value) {
+        next(value)
+      })
+    })
+  }
+}
+
 //main function that runs the other functions
 function touchHandler(element) {
    const container = document.getElementById(element);
@@ -61,13 +85,22 @@ function touchHandler(element) {
 
    }));
    touchMove$(value => console.log("MovingX Value: "+ value.pageX ))
-
-
-
-
-
-
-
-
+   
+   touchEvents$ = map(touchEvents$, event => ({
+    eType: event.type,
+    pageX: event.targetTouches[0].clientX,
+    pageY: event.targetTouches[0].clientY
+  }))
   
+  touchEvents$ = foldp(touchEvents$, (prev, curr) => {
+    if (curr.eType != "touchstart") {
+      let dx = curr.pageX - prev.pageX
+      let current = parseFloat(container.style.left) || 0
+      container.style.left = current + dx + "px"
+    }
+    return curr
+  }, null)
+
+  touchEvents$(value => console.log(value))
+    
 }
