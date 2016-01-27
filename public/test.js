@@ -1,43 +1,73 @@
-'use strict'
-//Stepper function added from FRPJS
-function stepper(eventStream, initial) {
-    var valueAtLastStep = initial;
-    eventStream(function nextStep(value) {
-        valueAtLastStep = value
-    })
-    return (function behaveAtLastStep() {
-        return valueAtLastStep
-    })
-}
-//FoldP or reduce
-function foldp(eventStream, step, initial) {
-    return (function(next) {
-        var accumulated = initial
-        eventStream(function (value) {
-            next(accumulated = step(accumulated, value))
-        })
-    })
-}
-//map function from FRPJS
-function map(eventStream, valueTransform) {
-    return function(next) {
-        eventStream(function(value) {
-            next(valueTransform(value));
-        })
-    }
+"use strict"
+
+function on(element, name, useCapture) {
+  return function(next) {
+    element.addEventListener(name, next, !!useCapture)
+  }
 }
 
-//on function from FRPJS
-function on(element, name, useCapture) {
-    return function(next) {
-        element.addEventListener(name, next, !!useCapture);
-    }
+function map(eventStream, valueTransform) {
+  return function(next) {
+    eventStream(function(value) {
+      next(valueTransform(value))
+    })
+  }
 }
+
+function foldp(eventStream, step, initial) {
+  return (function(next) {
+    var accumulated = initial
+    eventStream(function (value) {
+      next(accumulated = step(accumulated, value))
+    })
+  })
+}
+
+// function merge(...eventStreams) {
+//  return function(next) {
+//    eventStreams.forEach(function(eventStream) {
+//      eventStream(function(value) {
+//        next(value)
+//      })
+//    })
+//  }
+// }
+
+function merge() {
+  for (var _len = arguments.length, eventStreams = Array(_len), _key = 0; _key < _len; _key++) {
+    eventStreams[_key] = arguments[_key]
+  }
+
+  return function (next) {
+    eventStreams.forEach(function (eventStream) {
+      eventStream(function (value) {
+        next(value)
+      })
+    })
+  }
+}
+
 function touchHandler(element) {
-   const container = document.getElementById(element);
-   let touchMove$ = on(container, "touchmove", false);
-   touchMove$ = map(touchMove$, event => ({pageX: event.targetTouches[0].clientX,}));
-   touchMove$(page => console.log(page));
-   touchMove$ = stepper(touchMove$, 0);
-   touchMove$(value => console.log(value));
+  const container = document.getElementById(element)
+
+  let touchStart$ = on(container, "touchstart", false)
+  let touchMove$ = on(container, "touchmove", false)
+  let touchEvents$ = merge(touchStart$, touchMove$)
+
+  touchEvents$ = map(touchEvents$, event => ({
+    eType: event.type,
+    pageX: event.targetTouches[0].clientX,
+    pageY: event.targetTouches[0].clientY
+  }))
+  
+  touchEvents$ = foldp(touchEvents$, (prev, curr) => {
+    if (curr.eType != "touchstart") {
+      let dx = curr.pageX - prev.pageX
+      let current = parseFloat(container.style.left) || 0
+      container.style.left = current + dx + "px"
+    }
+    return curr
+  }, null)
+
+  touchEvents$(value => console.log(value))
 }
