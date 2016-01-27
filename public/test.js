@@ -24,7 +24,9 @@ function on(element, name, useCapture) {
         element.addEventListener(name, next, !!useCapture);
     }
 }
-
+function off(element,name){
+    element.removeEventListener(name);
+}
 //bind function
 function bind(eventStream, valueToEvent) {
     return function(next) {
@@ -33,16 +35,19 @@ function bind(eventStream, valueToEvent) {
         })
     }
 }
-
+function doSomething(value){
+    return value;
+}
 //main function that runs the other functions
 function touchHandler(element) {
    const container = document.getElementById(element);
 
    let touchStart$ = on(container, "touchstart", false);
 
-   touchStart$ = map(touchStart$, event => ({
-       startX: event.targetTouches[0].pageX,
-       startY: event.targetTouches[0].pageY,
+   touchStart$ = map(touchStart$, event => ( {
+       eType: event.type,
+       startX: event.targetTouches[0].clientX,
+
 
    }))
 
@@ -51,29 +56,18 @@ function touchHandler(element) {
 
    let touchMove$ = on(container, "touchmove", false);
    touchMove$ = map(touchMove$, event => ({
-       pageX: event.targetTouches[0].pageX,
-       pageY: event.targetTouches[0].pageY
+       eType: event.Type,
+       pageX: event.targetTouches[0].clientX,
+
    }));
+   touchMove$(value => console.log("MovingX Value: "+ value.pageX ))
 
-   // touchMove$ = foldp(touchMove$, (prev, curr) => {
-   //     console.log(prev.pageX, curr.pageX)
-   //     let dx = curr.pageX - prev.pageX;
-   //     let current = parseFloat(container.style.left) || 0;
-   //     container.style.left = current + dx + "px";
-   //     return curr;
-   // }, { pageX: touchStart$(value => { return value.startX }), pageY: touchStart$(value => { return value.startY }) })
-   //
-   // touchMove$(value => value);
 
-   touchEnd$(value => console.log(value))
-   let touchEvents$ = bind(touchStart$, (value) => foldp(touchMove$, (prev, curr) => {
-       console.log("Curr: "+curr.pageX, ", prev: "+prev.pageX);
-       let dx = curr.pageX - prev.pageX;
-       let current = parseFloat(container.style.left) || 0;
-       container.style.left = current + dx + "px";
-       return curr;
-   }, { pageX: value.startX, pageY: value.startY } ) )
-   //touchEvents = bind(touchEnd$, (value) => )
-   touchEvents$(value => value);
 
+
+
+
+
+
+  
 }
