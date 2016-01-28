@@ -38,54 +38,72 @@ function bind(eventStream, valueToEvent) {
 function doSomething(value){
     return value;
 }
-// function merge(...eventStreams) {
-//  return function(next) {
-//    eventStreams.forEach(function(eventStream) {
-//      eventStream(function(value) {
-//        next(value)
-//      })
-//    })
-//  }
+function merge(...eventStreams) {
+ return function(next) {
+   eventStreams.forEach(function(eventStream) {
+     eventStream(function(value) {
+       next(value)
+     })
+   })
+ }
+}
+
+// function merge() {
+//   for (var _len = arguments.length, eventStreams = Array(_len), _key = 0; _key < _len; _key++) {
+//     eventStreams[_key] = arguments[_key]
+//   }
+//
+//   return function (next) {
+//     eventStreams.forEach(function (eventStream) {
+//       eventStream(function (value) {
+//         next(value)
+//       })
+//     })
+//   }
 // }
-
-function merge() {
-  for (var _len = arguments.length, eventStreams = Array(_len), _key = 0; _key < _len; _key++) {
-    eventStreams[_key] = arguments[_key]
-  }
-
-  return function (next) {
-    eventStreams.forEach(function (eventStream) {
-      eventStream(function (value) {
-        next(value)
-      })
+function throttle(eventStream, ms) {
+    return (function(next) {
+        var last = 0;
+        eventStream(function(value) {
+            var now = performance.now()
+            if (last == 0 || (now - last) > ms) {
+                next(value)
+                last = now
+            }
+        })
     })
-  }
 }
 
 //main function that runs the other functions
 function touchHandler(element) {
    const container = document.getElementById(element);
+   let count = document.getElementsByClassName('box').length;
+
 
    let touchStart$ = on(container, "touchstart", false);
    let touchMove$ = on(container, "touchmove", false);
+
    let touchEvents$ = merge(touchStart$, touchMove$)
 
 
    touchEvents$ = map(touchEvents$, event => ({
     eType: event.type,
-    pageX: event.targetTouches[0].clientX,
-    pageY: event.targetTouches[0].clientY
+    pageX: event.touches[0].pageX,
+    pageY: event.touches[0].pageY,
+    timestamp: Date.now()
   }))
 
   touchEvents$ = foldp(touchEvents$, (prev, curr) => {
     if (curr.eType != "touchstart") {
-      let dx = curr.pageX - prev.pageX
+      let dx = parseFloat(curr.pageX - prev.pageX);
+      console.log(dx);
       let current = parseFloat(container.style.left) || 0
-      container.style.left = current + dx + "px"
+      container.style.left = current + dx + "px";
     }
     return curr
   }, null)
 
-  touchEvents$(value => console.log(value))
+  touchEvents$ = throttle(touchEvents$, 60);
+  touchEvents$(value => console.log(value));
 
 }
