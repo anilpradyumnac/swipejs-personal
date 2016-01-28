@@ -56,18 +56,19 @@ function touchHandler(element) {
 
   touchEvents$ = map(touchEvents$, event => ({
     eType: event.type,
-    pageX: event.targetTouches[0].clientX,
-    pageY: event.targetTouches[0].clientY
+    pageX: event.targetTouches[0].pageX,
+    pageY: event.targetTouches[0].pageY
   }))
   
   touchEvents$ = foldp(touchEvents$, (prev, curr) => {
     if (curr.eType != "touchstart") {
       let dx = curr.pageX - prev.pageX
       let current = parseFloat(container.style.left) || 0
+      console.log(current + dx)
       container.style.left = current + dx + "px"
     }
     return curr
   }, null)
 
-  touchEvents$(value => console.log(value))
+  touchEvents$(value => value)
 }
