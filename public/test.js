@@ -1,4 +1,4 @@
-    'use strict'
+'use strict'
 
 //reduce or foldp function
 function foldp(eventStream, step, initial) {
@@ -22,8 +22,11 @@ function map(eventStream, valueTransform) {
 function on(element, name, useCapture) {
     return function(next) {
         element.addEventListener(name, next, !!useCapture);
+
+
     }
 }
+
 function off(element,name){
     element.removeEventListener(name);
 }
@@ -35,19 +38,17 @@ function bind(eventStream, valueToEvent) {
         })
     }
 }
-function doSomething(value){
-    return value;
-}
-function merge(...eventStreams) {
- return function(next) {
-   eventStreams.forEach(function(eventStream) {
-     eventStream(function(value) {
-       next(value)
-     })
-   })
- }
-}
 
+function merge(...eventStreams) {
+    return function(next) {
+        eventStreams.forEach(function(eventStream) {
+            eventStream(function(value) {
+                next(value)
+            })
+        })
+    }
+}
+//Merge function as retunred by babel.js transpiler
 // function merge() {
 //   for (var _len = arguments.length, eventStreams = Array(_len), _key = 0; _key < _len; _key++) {
 //     eventStreams[_key] = arguments[_key]
@@ -74,10 +75,21 @@ function throttle(eventStream, ms) {
     })
 }
 
+function debounce(eventStream, ms) {
+    var timer = null;
+    return function () {
+        var context = this, args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            eventStream.apply(context, args);
+        }, ms);
+    };
+}
 //main function that runs the other functions
 function touchHandler(element) {
    const container = document.getElementById(element);
    let count = document.getElementsByClassName('box').length;
+
 
 
    let touchStart$ = on(container, "touchstart", false);
@@ -87,13 +99,13 @@ function touchHandler(element) {
 
 
    touchEvents$ = map(touchEvents$, event => ({
-    eType: event.type,
-    pageX: event.touches[0].pageX,
-    pageY: event.touches[0].pageY,
-    timestamp: Date.now()
-  }))
+       eType: event.type,
+       pageX: event.touches[0].pageX,
+       pageY: event.touches[0].pageY,
+       timestamp: Date.now()
+   }));
 
-  touchEvents$ = foldp(touchEvents$, (prev, curr) => {
+   touchEvents$ = foldp(touchEvents$, (prev, curr) => {
     if (curr.eType != "touchstart") {
       let dx = parseFloat(curr.pageX - prev.pageX);
       console.log(dx);
@@ -103,7 +115,6 @@ function touchHandler(element) {
     return curr
   }, null)
 
-  touchEvents$ = throttle(touchEvents$, 60);
+  touchEvents$ = debounce(touchEvents$, 42);
   touchEvents$(value => console.log(value));
-
 }
